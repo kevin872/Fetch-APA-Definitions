@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch APA Definitions</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Fetch APA Definitions</h1>
+        <form id="termsForm">
+            <label for="termsInput">Enter key terms (comma-separated or newline-separated):</label>
+            <textarea id="termsInput" rows="10" cols="50"></textarea>
+            <button type="button" onclick="submitTerms()">Submit</button>
+        </form>
+        <div id="results"></div>
+    </div>
+    
+    <script>
+        async function submitTerms() {
+            const input = document.getElementById('termsInput').value;
+            // Normalize input by splitting by new lines or commas, then trim and clean terms
+            const terms = input
+                .split(/[\n,]+/) // Split by new lines or commas
+                .map(term => term.trim()) // Remove any extra spaces around each term
+                .filter(term => term) // Remove empty terms
+                .map(term => term.replace(/\s+/g, '-').toLowerCase()); // Replace spaces with hyphens
+
+            // Send terms to the server
+            const response = await fetch('/fetch-definitions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ terms })
+            });
+
+            const result = await response.json();
+            displayResults(result);
+        }
+
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h2>Definitions:</h2>';
+            result.forEach(termResult => {
+                resultsDiv.innerHTML += `<div class="result-item"><strong>Term:</strong> ${termResult.term.replace(/-/g, ' ')}<br><strong>Definition:</strong> ${termResult.definition}</div>`;
+            });
+        }
+    </script>
+</body>
+</html>
